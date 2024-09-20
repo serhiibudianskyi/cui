@@ -267,10 +267,7 @@ void CUI::Window::drawPad()
 
         assert(parent);
 
-        CUI::Position parentTopLeftPosition = {
-            parent->getAbsolutePositionWithScroll().x_ + parent->getPadding().left_,
-            parent->getAbsolutePositionWithScroll().y_ + parent->getPadding().top_
-        };
+        CUI::Position parentTopLeftPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().left_, parent->getPadding().top_};
 
         if (padTopLeftPosition.x_ < parentTopLeftPosition.x_)
         {
@@ -296,10 +293,7 @@ void CUI::Window::drawPad()
             padTopLeftPosition.y_ = parent->padTopLeftPosition_.y_;
         }
 
-        CUI::Position parentBottomRightPosition = {
-            parent->getAbsolutePositionWithScroll().x_ + parent->getSize().width_ - parent->getPadding().left_ - parent->getPadding().right_,
-            parent->getAbsolutePositionWithScroll().y_ + parent->getSize().height_ - parent->getPadding().top_ - parent->getPadding().bottom_
-        };
+        CUI::Position parentBottomRightPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getSize().width_, parent->getSize().height_} - CUI::Position{parent->getPadding().left_ + parent->getPadding().right_, parent->getPadding().top_ + parent->getPadding().bottom_};
 
         if (padBottomRightPosition.x_ > parentBottomRightPosition.x_)
         {
