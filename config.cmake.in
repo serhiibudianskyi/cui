@@ -1,0 +1,3 @@
+set(cui_DIR "@INSTALL_DIR@")
+set(cui_LIB_DIR "@INSTALL_LIB_DIR@")
+set(cui_INCLUDE_DIR "@INSTALL_INCLUDE_DIR@")
