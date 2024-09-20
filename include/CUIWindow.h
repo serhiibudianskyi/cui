@@ -48,15 +48,10 @@ namespace CUI
 
         Position offset_{0, 0};
 
-        std::vector<Widget *> widgets_;
-
-        int padmaxy_;
-        int padmaxx_;
-        int padx_;
-        int pady_;
-
         Size padSize_{0, 0};
-        Position savePadPosition_{0, 0};
-        Position savePadMaxPosition_{0, 0};
+        Position padTopLeftPosition_{0, 0};
+        Position padBottomRightPosition_{0, 0};
+
+        std::vector<Widget *> widgets_;
     };
 };

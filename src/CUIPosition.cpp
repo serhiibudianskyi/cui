@@ -32,7 +32,7 @@ bool CUI::Position::operator>=(const CUI::Position &other) const
 
 CUI::Position::operator bool() const
 {
-    return  x_ || y_;
+    return x_ || y_;
 }
 
 CUI::Position CUI::Position::operator+(const CUI::Position &other) const

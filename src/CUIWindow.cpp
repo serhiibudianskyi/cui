@@ -236,8 +236,14 @@ void CUI::Window::clear()
 
 void CUI::Window::drawBorder()
 {
-    box(border_, 0, 0);
-    // wborder(border_, '|', '|', '-', '-', '+', '+', '+', '+');
+    // box(border_, 0, 0);
+
+    char topBorder = getPadding().top_ ? '-' : ' ';
+    char rigthBorder = getPadding().right_ ? '|' : ' ';
+    char bottomBorder = getPadding().bottom_ ? '-' : ' ';
+    char leftBorder = getPadding().left_ ? '|' : ' ';
+    
+    wborder(border_, leftBorder, rigthBorder, topBorder, bottomBorder, '+', '+', '+', '+');
 }
 
 void CUI::Window::drawTitle()
@@ -251,14 +257,9 @@ void CUI::Window::drawTitle()
 
 void CUI::Window::drawPad()
 {
-    int offsety = offset_.y_;
-    int offsetx = offset_.x_;
-    int pady = getAbsolutePositionWithScroll().y_ + getPadding().top_;
-    int padx = getAbsolutePositionWithScroll().x_ + getPadding().left_;
-    int padmaxy = getAbsolutePositionWithScroll().y_ + getSize().height_ - getPadding().top_ - getPadding().left_;
-    int padmaxx = getAbsolutePositionWithScroll().x_ + getSize().width_ - getPadding().left_ - getPadding().right_;
-
-    // mvwprintw(getBorder(), 0, 1, "%d %d", getVisibleSize().width_, getVisibleSize().height_);
+    CUI::Position offsetPosition = offset_;
+    CUI::Position padTopLeftPosition = getAbsolutePositionWithScroll() + CUI::Position{getPadding().left_, getPadding().top_};
+    CUI::Position padBottomRightPosition = getAbsolutePositionWithScroll() + CUI::Position{getSize().width_, getSize().height_} - CUI::Position{getPadding().left_ + getPadding().right_, getPadding().top_ + getPadding().bottom_};
 
     if (getParent())
     {
@@ -266,85 +267,63 @@ void CUI::Window::drawPad()
 
         assert(parent);
 
-        int parentminx = parent->getAbsolutePositionWithScroll().x_ + parent->getPadding().left_;
+        CUI::Position parentTopLeftPosition = {
+            parent->getAbsolutePositionWithScroll().x_ + parent->getPadding().left_,
+            parent->getAbsolutePositionWithScroll().y_ + parent->getPadding().top_
+        };
 
-        mvwprintw(getBorder(), 0, 3, "%d %d", parent->getAbsolutePositionWithScroll().x_, parent->getAbsolutePositionWithScroll().y_);
-
-        if (padx < parentminx)
+        if (padTopLeftPosition.x_ < parentTopLeftPosition.x_)
         {
-            offsetx += parentminx - padx;
-            padx = parentminx;
+            offsetPosition.x_ += parentTopLeftPosition.x_ - padTopLeftPosition.x_;
+            padTopLeftPosition.x_ = parentTopLeftPosition.x_;
         }
 
-        if (padx < parent->padx_)
+        if (padTopLeftPosition.x_ < parent->padTopLeftPosition_.x_)
         {
-            offsetx += parent->padx_ - padx;
-            padx = parent->padx_;
+            offsetPosition.x_ += parent->padTopLeftPosition_.x_ - padTopLeftPosition.x_;
+            padTopLeftPosition.x_ = parent->padTopLeftPosition_.x_;
         }
 
-        int parentminy = parent->getAbsolutePositionWithScroll().y_ + parent->getPadding().top_;
-
-        if (pady < parentminy)
+        if (padTopLeftPosition.y_ < parentTopLeftPosition.y_)
         {
-            offsety += parentminy - pady;
-            pady = parentminy;
+            offsetPosition.y_ += parentTopLeftPosition.y_ - padTopLeftPosition.y_;
+            padTopLeftPosition.y_ = parentTopLeftPosition.y_;
         }
 
-        if (pady < parent->pady_)
+        if (padTopLeftPosition.y_ < parent->padTopLeftPosition_.y_)
         {
-            offsety += parent->pady_ - pady;
-            pady = parent->pady_;
+            offsetPosition.y_ += parent->padTopLeftPosition_.y_ - padTopLeftPosition.y_;
+            padTopLeftPosition.y_ = parent->padTopLeftPosition_.y_;
         }
 
-        int parentmaxx = parent->getAbsolutePositionWithScroll().x_ + parent->getSize().width_ - parent->getPadding().left_ - parent->getPadding().right_;
+        CUI::Position parentBottomRightPosition = {
+            parent->getAbsolutePositionWithScroll().x_ + parent->getSize().width_ - parent->getPadding().left_ - parent->getPadding().right_,
+            parent->getAbsolutePositionWithScroll().y_ + parent->getSize().height_ - parent->getPadding().top_ - parent->getPadding().bottom_
+        };
 
-        if (padmaxx > parentmaxx)
+        if (padBottomRightPosition.x_ > parentBottomRightPosition.x_)
         {
-            padmaxx = parentmaxx;
+            padBottomRightPosition.x_ = parentBottomRightPosition.x_;
         }
 
-        if (padmaxx > parent->padmaxx_)
+        if (padBottomRightPosition.x_ > parent->padBottomRightPosition_.x_)
         {
-            padmaxx = parent->padmaxx_;
+            padBottomRightPosition.x_ = parent->padBottomRightPosition_.x_;
         }
 
-        int parentmaxy = parent->getAbsolutePositionWithScroll().y_ + parent->getSize().height_ - parent->getPadding().top_ - parent->getPadding().bottom_;
-
-        if (padmaxy > parentmaxy)
+        if (padBottomRightPosition.y_ > parentBottomRightPosition.y_)
         {
-            padmaxy = parentmaxy;
+            padBottomRightPosition.y_ = parentBottomRightPosition.y_;
         }
 
-        if (padmaxy > parent->padmaxy_)
+        if (padBottomRightPosition.y_ > parent->padBottomRightPosition_.y_)
         {
-            padmaxy = parent->padmaxy_;
+            padBottomRightPosition.y_ = parent->padBottomRightPosition_.y_;
         }
-
-        // padmaxx = getVisibleSize().width_ - 1;
-
-        // /* Pad position according to screen size */
-        // CUI::Size screenSize = {0, 0};
-        // getmaxyx(parent->getBorder(), screenSize.height_, screenSize.width_);
-
-        // screenSize.width_ -= getPadding().left_ + getPadding().right_;
-        // screenSize.height_ -= getPadding().top_ + getPadding().right_;
-
-        // if (padmaxx > screenSize.width_)
-        // {
-        //     padmaxx -= padmaxx - screenSize.width_;
-        // }
-
-        // if (padmaxy > screenSize.height_)
-        // {
-        //     padmaxy -= padmaxy - screenSize.height_;
-        // }
     }
 
-    padmaxy_ = padmaxy;
-    padmaxx_ = padmaxx;
-
-    padx_ = padx;
-    pady_ = pady;
+    padTopLeftPosition_ = padTopLeftPosition;
+    padBottomRightPosition_ = padBottomRightPosition;
 
     // Pad position according to screen size
     CUI::Size screenSize = {0, 0};
@@ -353,19 +332,17 @@ void CUI::Window::drawPad()
     screenSize.width_ -= getPadding().left_ + getPadding().right_;
     screenSize.height_ -= getPadding().top_ + getPadding().right_;
 
-    if (padmaxx > screenSize.width_)
+    if (padBottomRightPosition.x_ > screenSize.width_)
     {
-        padmaxx -= padmaxx - screenSize.width_;
+        padBottomRightPosition.x_ -= padBottomRightPosition.x_ - screenSize.width_;
     }
 
-    if (padmaxy > screenSize.height_)
+    if (padBottomRightPosition.y_ > screenSize.height_)
     {
-        padmaxy -= padmaxy - screenSize.height_;
+        padBottomRightPosition.y_ -= padBottomRightPosition.y_ - screenSize.height_;
     }
 
-    // ││This is line 0┌29 7──────Sub
-
-    pnoutrefresh(pad_, offsety, offsetx, pady, padx, padmaxy, padmaxx);
+    pnoutrefresh(pad_, offsetPosition.y_, offsetPosition.x_, padTopLeftPosition.y_, padTopLeftPosition.x_, padBottomRightPosition.y_, padBottomRightPosition.x_);
 }
 
 void CUI::Window::drawWidgets()

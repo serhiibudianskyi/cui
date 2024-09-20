@@ -6,8 +6,8 @@ namespace CUI
 {
     struct Size
     {
-        int width_{0}; // issue size_t 
-        int height_{0}; // issue size_t 
+        int width_{0};
+        int height_{0};
 
         bool operator==(const Size &other) const;
         bool operator!=(const Size &other) const;

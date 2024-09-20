@@ -1,13 +1,11 @@
 #pragma once
 
-#include <cstddef>
-
 namespace CUI
 {
     struct Position
     {
-        std::size_t x_{0};
-        std::size_t y_{0};
+        int x_{0};
+        int y_{0};
 
         bool operator==(const Position &other) const;
         bool operator!=(const Position &other) const;

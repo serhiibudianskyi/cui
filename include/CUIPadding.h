@@ -1,14 +1,12 @@
 #pragma once
 
-#include <cstddef>
-
 namespace CUI
 {
     struct Padding
     {
-        std::size_t top_{0};
-        std::size_t right_{0};
-        std::size_t bottom_{0};
-        std::size_t left_{0};
+        int top_{0};
+        int right_{0};
+        int bottom_{0};
+        int left_{0};
     };
 };
