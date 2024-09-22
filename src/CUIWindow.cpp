@@ -109,7 +109,6 @@ void CUI::Window::draw()
     update_panels();
 
     drawPad();
-
     drawWidgets();
 }
 
@@ -120,7 +119,6 @@ void CUI::Window::resize()
         widget->resize();
     }
 
-    // Re-calculate border size
     CUI::Size size = {0, 0};
 
     auto maxWidthPtr = std::max_element(widgets_.begin(), widgets_.end(), [](const auto &a, const auto &b)
@@ -130,13 +128,13 @@ void CUI::Window::resize()
 
     if (getParent())
     {
-        size.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ + getPadding().left_ + getPadding().right_ : 0;
-        size.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ + getPadding().top_ + getPadding().bottom_ : 0;
+        size.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ + getPadding().isLeft() + getPadding().right_ : 0;
+        size.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ + getPadding().isTop() + getPadding().bottom_ : 0;
 
         if (getMaxSize())
         {
-            size.width_ = std::min((int)size.width_, getMaxSize().width_);
-            size.height_ = std::min((int)size.height_, getMaxSize().height_);
+            size.width_ = std::min(size.width_, getMaxSize().width_);
+            size.height_ = std::min(size.height_, getMaxSize().height_);
         }
     }
     else
@@ -152,8 +150,10 @@ void CUI::Window::resize()
 
     padSize.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ : padSize.width_;
     padSize.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ : padSize.height_;
+    
+    padSize.width_ += std::max(0, getPadding().right_ - 1);
+    padSize.height_ += std::max(0, getPadding().bottom_ - 1);
 
-    // setMaxSize(maxSize);
     padSize_ = padSize;
     wresize(pad_, padSize_.height_, padSize_.width_);
 }
@@ -204,7 +204,7 @@ void CUI::Window::move()
 void CUI::Window::replace()
 {
     CUI::Widget *previous = nullptr;
-    CUI::Position position = {0, 0};
+    CUI::Position position = {std::max(0, getPadding().left_ - 1), std::max(0, getPadding().top_ - 1)};
 
     for (const auto &widget : widgets_)
     {
@@ -239,18 +239,21 @@ void CUI::Window::clear()
 
 void CUI::Window::drawBorder()
 {
-    // box(border_, 0, 0);
-
-    char topBorder = getPadding().top_ ? '-' : ' ';
-    char rigthBorder = getPadding().right_ ? '|' : ' ';
-    char bottomBorder = getPadding().bottom_ ? '-' : ' ';
-    char leftBorder = getPadding().left_ ? '|' : ' ';
+    char topBorder = getPadding().isTop() ? '-' : ' ';
+    char rigthBorder = getPadding().isRight() ? '|' : ' ';
+    char bottomBorder = getPadding().isBottom() ? '-' : ' ';
+    char leftBorder = getPadding().isLeft() ? '|' : ' ';
     
     wborder(border_, leftBorder, rigthBorder, topBorder, bottomBorder, '+', '+', '+', '+');
 }
 
 void CUI::Window::drawTitle()
 {
+    if (!getPadding().isTop())
+    {
+        return;
+    }
+
     CUI::Size size = getSize();
 
     wattron(border_, A_BOLD);
@@ -261,8 +264,8 @@ void CUI::Window::drawTitle()
 void CUI::Window::drawPad()
 {
     CUI::Position offsetPosition = offset_;
-    CUI::Position padTopLeftPosition = getAbsolutePositionWithScroll() + CUI::Position{getPadding().left_, getPadding().top_};
-    CUI::Position padBottomRightPosition = getAbsolutePositionWithScroll() + CUI::Position{getSize().width_, getSize().height_} - CUI::Position{getPadding().left_ + getPadding().right_, getPadding().top_ + getPadding().bottom_};
+    CUI::Position padTopLeftPosition = getAbsolutePositionWithScroll() + CUI::Position{getPadding().isLeft(), getPadding().isTop()};
+    CUI::Position padBottomRightPosition = getAbsolutePositionWithScroll() + CUI::Position{getSize().width_, getSize().height_} - CUI::Position{getPadding().isLeft() + getPadding().isRight(), getPadding().isTop() + getPadding().isBottom()};
 
     if (getParent())
     {
@@ -270,7 +273,7 @@ void CUI::Window::drawPad()
 
         assert(parent);
 
-        CUI::Position parentTopLeftPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().left_, parent->getPadding().top_};
+        CUI::Position parentTopLeftPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().isLeft(), parent->getPadding().isTop()};
 
         if (padTopLeftPosition.x_ < parentTopLeftPosition.x_)
         {
@@ -296,7 +299,7 @@ void CUI::Window::drawPad()
             padTopLeftPosition.y_ = parent->padTopLeftPosition_.y_;
         }
 
-        CUI::Position parentBottomRightPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getSize().width_, parent->getSize().height_} - CUI::Position{parent->getPadding().left_ + parent->getPadding().right_, parent->getPadding().top_ + parent->getPadding().bottom_};
+        CUI::Position parentBottomRightPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getSize().width_, parent->getSize().height_} - CUI::Position{parent->getPadding().isLeft() + parent->getPadding().isRight(), parent->getPadding().isTop() + parent->getPadding().isBottom()};
 
         if (padBottomRightPosition.x_ > parentBottomRightPosition.x_)
         {
@@ -326,8 +329,8 @@ void CUI::Window::drawPad()
     CUI::Size screenSize = {0, 0};
     getmaxyx(stdscr, screenSize.height_, screenSize.width_);
 
-    screenSize.width_ -= getPadding().left_ + getPadding().right_;
-    screenSize.height_ -= getPadding().top_ + getPadding().right_;
+    screenSize.width_ -= getPadding().isLeft() + getPadding().isRight();
+    screenSize.height_ -= getPadding().isTop() + getPadding().isRight();
 
     if (padBottomRightPosition.x_ > screenSize.width_)
     {
@@ -367,21 +370,21 @@ bool CUI::Window::scrolling(int to, unsigned short step)
         }
         break;
     case KEY_NPAGE:
-        if (padSize_.height_ + getPadding().top_ + getPadding().bottom_ >= offset_.y_ + getSize().height_ + step)
+        if (padSize_.height_ + getPadding().isTop() + getPadding().isBottom() >= offset_.y_ + getSize().height_ + step)
         {
             offset_.y_ += step;
         }
-        else if (padSize_.height_ + getPadding().top_ + getPadding().bottom_ >= offset_.y_ + getSize().height_ + 1)
+        else if (padSize_.height_ + getPadding().isTop() + getPadding().isBottom() >= offset_.y_ + getSize().height_ + 1)
         {
             offset_.y_++;
         }
         break;
     case KEY_RIGHT:
-        if (padSize_.width_ + getPadding().left_ + getPadding().right_ >= offset_.x_ + getSize().width_ + step)
+        if (padSize_.width_ + getPadding().isLeft() + getPadding().isRight() >= offset_.x_ + getSize().width_ + step)
         {
             offset_.x_ += step;
         }
-        else if (padSize_.width_ + getPadding().left_ + getPadding().right_ >= offset_.x_ + getSize().width_ + 1)
+        else if (padSize_.width_ + getPadding().isLeft() + getPadding().isRight() >= offset_.x_ + getSize().width_ + 1)
         {
             offset_.x_++;
         }
@@ -391,7 +394,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
         {
             offset_.x_ -= step;
         }
-        if (offset_.x_ > 0)
+        else if (offset_.x_ > 0)
         {
             offset_.x_--;
         }
@@ -413,7 +416,7 @@ CUI::Position CUI::Window::getAbsolutePositionWithScroll() const
 
         assert(parent);
 
-        result += parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().left_, parent->getPadding().top_} - parent->getOffset();
+        result += parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().isLeft(), parent->getPadding().isTop()} - parent->getOffset();
     }
 
     return result;
