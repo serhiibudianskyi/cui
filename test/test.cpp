@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
     subh0->add(new CUI::Text(subh0, "This is line " + std::to_string(0)));
     CUI::Window *subh0v0 = new CUI::Window(subh0, "Sub 0 0", CUI::VERTICAL);
     CUI::Window *subh0v0v0 = new CUI::Window(subh0v0, "Sub 0 0 0", CUI::VERTICAL);
+    subh0v0v0->setMaxSize({20, 5});
     for (std::size_t i = 0; i < 5; ++i)
     {
         subh0v0v0->add(new CUI::Text(subh0v0v0, "This is line line line line line line " + std::to_string(i)));

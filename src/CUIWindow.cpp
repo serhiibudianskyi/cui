@@ -133,8 +133,11 @@ void CUI::Window::resize()
         size.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ + getPadding().left_ + getPadding().right_ : 0;
         size.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ + getPadding().top_ + getPadding().bottom_ : 0;
 
-        size.width_ = std::min((int)size.width_, 30);
-        size.height_ = std::min((int)size.height_, 8);
+        if (getMaxSize())
+        {
+            size.width_ = std::min((int)size.width_, getMaxSize().width_);
+            size.height_ = std::min((int)size.height_, getMaxSize().height_);
+        }
     }
     else
     {
