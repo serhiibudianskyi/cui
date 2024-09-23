@@ -1,28 +1,34 @@
 #include "CUIWindow.h"
 
-CUI::Window::Window(CUI::Window *parent, const std::string &title, CUI::Direction direction) : CUI::Widget(parent), title_(title)
+CUI::Window::Window(CUI::Window *parent, const std::string &title, CUI::Direction direction)
+    : CUI::Widget(parent), title_(title)
 {
-    pad_ = newpad(1, 1);
-    wbkgd(pad_, COLOR_PAIR(WIN_PAD_COLOR));
+    /* Pad initialization */
+    pad_ = newpad(1, 1);                    // Use non-zero space to avoid displaying issue.
+    wbkgd(pad_, COLOR_PAIR(WIN_PAD_COLOR)); // Default pad color is WIN_PAD_COLOR.
+    keypad(pad_, true);                     // Enable special keys to use F1, Esc and etc.
 
+    /* Border initialization */
     border_ = parent ? derwin(parent->getPad(), 0, 0, 0, 0) : newwin(0, 0, 0, 0);
-    wbkgd(border_, COLOR_PAIR(WIN_BORDER_COLOR));
+    wbkgd(border_, COLOR_PAIR(WIN_BORDER_COLOR)); // Default border color.
 
-    panel_ = new_panel(border_);
+    /* Border panel initialization */
+    panel_ = new_panel(border_); // Use to hold the border window, ensuring it doesn't overlap with other windows.
 
-    keypad(pad_, true);
-
-    setDirection(direction);
-    setPadding({1, 1, 1, 1});
+    /* Widget settings */
+    setDirection(direction);  // Direction of the window's related widgets.
+    setPadding({1, 1, 1, 1}); // Default padding to 1 for each border length.
 }
 
 CUI::Window::~Window()
 {
-    for (const auto &widget : widgets_)
+    /* Removing all child widgets */
+    for (auto &widget : widgets_)
     {
         delete widget;
     }
 
+    /* Clean up window resources */
     del_panel(panel_);
     delwin(border_);
     delwin(pad_);
@@ -33,12 +39,14 @@ int CUI::Window::run()
     int character = 0;
     bool exit = false;
 
-    refresh();
+    refresh(); // Refresh window despite of existed child widgets.
 
+    /* Main loop: process user input and update the window */
     for (std::size_t i = 0; i < widgets_.size() && !exit;)
     {
-        refresh();
+        refresh(); // Repaint window with updated data.
 
+        /* Running child widget */
         character = widgets_[i]->run();
 
         switch (character)
@@ -47,27 +55,31 @@ int CUI::Window::run()
         case KEY_NPAGE:
         case KEY_LEFT:
         case KEY_RIGHT:
-            if (scrolling(character, 1) || !getParent())
+            /* Scrolling */
+            if (scrolling(character, 1) || !getParent()) // Scroll the window if it's possible or check the window is not a main.
             {
-                break;
+                break; // Stay on current widget.
             }
             else
             {
-                exit = true;
+                exit = true; // Exit current widget to scroll parent.
             }
         case KEY_F(1):
         case 27:
+            /* Exit */
             exit = true;
             break;
         case KEY_RESIZE:
-            if (getParent())
+            /* Resize */
+            if (getParent()) // Resize windows down from main.
             {
                 exit = true;
             }
-            offset_ = {0, 0};
+            offset_ = {0, 0}; // Reset window offset.
             break;
         default:
-            i++;
+            /* Next */
+            i++; // Go to next widget.
             break;
         }
     }
@@ -77,23 +89,23 @@ int CUI::Window::run()
 
 void CUI::Window::refresh()
 {
-    update();
+    update(); // Update window dimensions and settings.
 
+    /* Re-draw window */
     clear();
-
     draw();
 
-    doupdate();
+    doupdate(); // Draw updated window on screen.
 }
 
 void CUI::Window::update()
 {
-    resize();
+    /* Updating window */
+    resize();  // Resize before movement.
+    move();    // Movement after resize.
+    replace(); // Replace widgets according to new size and position.
 
-    move();
-
-    replace();
-
+    /* Updating all child widgets correspondingly */
     for (auto &widget : widgets_)
     {
         widget->update();
@@ -102,19 +114,23 @@ void CUI::Window::update()
 
 void CUI::Window::draw()
 {
+    /* Draw content */
     drawBorder();
     drawTitle();
     drawWidgets();
 
+    /* Border panel update */
     update_panels();
 
+    // Draw pad and entire widgets(may has pads) again to avoid panel overlap issue.
     drawPad();
     drawWidgets();
 }
 
 void CUI::Window::resize()
 {
-    for (const auto &widget : widgets_)
+    // Resize child widgets at first to  avoid size mismatch or incompleteness.
+    for (auto &widget : widgets_)
     {
         widget->resize();
     }
@@ -126,36 +142,58 @@ void CUI::Window::resize()
     auto maxHeightPtr = std::max_element(widgets_.begin(), widgets_.end(), [](const auto &a, const auto &b)
                                          { return a->getSize().height_ + a->getPosition().y_ < b->getSize().height_ + b->getPosition().y_; });
 
-    if (getParent())
+    // Calculate new border size.
     {
-        size.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ + getPadding().isLeft() + getPadding().right_ : 0;
-        size.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ + getPadding().isTop() + getPadding().bottom_ : 0;
-
-        if (getMaxSize())
+        if (getParent()) // No limits if no parent, besides widget max size.
         {
-            size.width_ = std::min(size.width_, getMaxSize().width_);
-            size.height_ = std::min(size.height_, getMaxSize().height_);
+            // Get max size according to max value of widget position, size and border.
+            size.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ + getPadding().isLeft() + getPadding().right_ : 0;
+            size.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ + getPadding().isTop() + getPadding().bottom_ : 0;
+
+            // Limit new calculated sizes if > widget max size exists.
+            if (getMaxSize())
+            {
+                size.width_ = std::min(size.width_, getMaxSize().width_);
+                size.height_ = std::min(size.height_, getMaxSize().height_);
+            }
         }
+        else
+        {
+            getmaxyx(stdscr, size.height_, size.width_); // Get screen size.
+        }
+
+        setSize(size);                               // Save calculated size.
+        wresize(border_, size.height_, size.width_); // Resize border.
     }
-    else
+
+    CUI::Size padSize = size; // Border size is default value for pad size to avoid displaying issue.
+
+    // Calculate new pad size.
     {
-        getmaxyx(stdscr, size.height_, size.width_);
+        // Get pad size according to max value of widget position and size.
+        padSize.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ : padSize.width_;
+        padSize.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ : padSize.height_;
+        // Add padding to previous calculated pad size.
+        padSize.width_ += std::max(0, getPadding().right_ - 1);
+        padSize.height_ += std::max(0, getPadding().bottom_ - 1);
+
+        padSize_ = padSize;                               // Save pad size.
+        wresize(pad_, padSize_.height_, padSize_.width_); // Resize pad.
     }
+}
 
-    setSize(size);
-    wresize(border_, size.height_, size.width_);
+void CUI::Window::add(Widget *widget)
+{
+    assert(widget); // Check if widget exists.
 
-    // Re-calculate pad size
-    CUI::Size padSize = size;
+    auto found = std::find_if(widgets_.begin(), widgets_.end(), [widget](const auto &item)
+                              { return item == widget; });
 
-    padSize.width_ = widgets_.end() != maxWidthPtr ? (*maxWidthPtr)->getPosition().x_ + (*maxWidthPtr)->getSize().width_ : padSize.width_;
-    padSize.height_ = widgets_.end() != maxHeightPtr ? (*maxHeightPtr)->getPosition().y_ + (*maxHeightPtr)->getSize().height_ : padSize.height_;
-    
-    padSize.width_ += std::max(0, getPadding().right_ - 1);
-    padSize.height_ += std::max(0, getPadding().bottom_ - 1);
+    assert(widgets_.end() == found); // Check if widget is unique.
 
-    padSize_ = padSize;
-    wresize(pad_, padSize_.height_, padSize_.width_);
+    widgets_.emplace_back(widget); // Add child widget to common array.
+
+    replace(); // Replace child widget according current direction to corresponding position.
 }
 
 WINDOW *CUI::Window::getPad() const
@@ -168,37 +206,18 @@ WINDOW *CUI::Window::getBorder() const
     return border_;
 }
 
-CUI::Position CUI::Window::getOffset() const
-{
-    return offset_;
-}
-
-void CUI::Window::add(Widget *widget)
-{
-    assert(widget);
-
-    auto found = std::find_if(widgets_.begin(), widgets_.end(), [widget](const auto &item)
-                              { return item == widget; });
-
-    assert(widgets_.end() == found);
-
-    widgets_.emplace_back(widget);
-
-    replace();
-}
-
 void CUI::Window::move()
 {
     CUI::Position position = getPosition();
 
-    wmove(border_, position.y_, position.x_);
+    wmove(border_, position.y_, position.x_); // Window movement.
 
     if (getParent())
     {
-        mvderwin(border_, position.y_, position.x_);
+        mvderwin(border_, position.y_, position.x_); // Derwin movement.
     }
 
-    move_panel(panel_, position.y_, position.x_);
+    move_panel(panel_, position.y_, position.x_); // Panel movement.
 }
 
 void CUI::Window::replace()
@@ -233,8 +252,8 @@ void CUI::Window::replace()
 
 void CUI::Window::clear()
 {
-    wclear(pad_);
-    wclear(border_);
+    wclear(pad_);    // Clear pad.
+    wclear(border_); // Clear border.
 }
 
 void CUI::Window::drawBorder()
@@ -243,7 +262,7 @@ void CUI::Window::drawBorder()
     char rigthBorder = getPadding().isRight() ? '|' : ' ';
     char bottomBorder = getPadding().isBottom() ? '-' : ' ';
     char leftBorder = getPadding().isLeft() ? '|' : ' ';
-    
+
     wborder(border_, leftBorder, rigthBorder, topBorder, bottomBorder, '+', '+', '+', '+');
 }
 
@@ -251,14 +270,14 @@ void CUI::Window::drawTitle()
 {
     if (!getPadding().isTop())
     {
-        return;
+        return; // The is no space for title.
     }
 
     CUI::Size size = getSize();
 
-    wattron(border_, A_BOLD);
+    wattron(border_, A_BOLD); // Turn of bold font.
     mvwprintw(border_, 0, (size.width_ - title_.length()) / 2, "%s", title_.c_str());
-    wattroff(border_, A_BOLD);
+    wattroff(border_, A_BOLD); // Turn off bold font.
 }
 
 void CUI::Window::drawPad()
@@ -267,87 +286,96 @@ void CUI::Window::drawPad()
     CUI::Position padTopLeftPosition = getAbsolutePositionWithScroll() + CUI::Position{getPadding().isLeft(), getPadding().isTop()};
     CUI::Position padBottomRightPosition = getAbsolutePositionWithScroll() + CUI::Position{getSize().width_, getSize().height_} - CUI::Position{getPadding().isLeft() + getPadding().isRight(), getPadding().isTop() + getPadding().isBottom()};
 
+    /* Pad position limit relative to parent */
     if (getParent())
     {
         CUI::Window *parent = dynamic_cast<CUI::Window *>(getParent());
 
-        assert(parent);
+        assert(parent); // Parent must be a window.
 
-        CUI::Position parentTopLeftPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().isLeft(), parent->getPadding().isTop()};
-
-        if (padTopLeftPosition.x_ < parentTopLeftPosition.x_)
+        // Limit pad top left position relative to parent.
         {
-            offsetPosition.x_ += parentTopLeftPosition.x_ - padTopLeftPosition.x_;
-            padTopLeftPosition.x_ = parentTopLeftPosition.x_;
+            CUI::Position parentTopLeftPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().isLeft(), parent->getPadding().isTop()};
+
+            if (padTopLeftPosition.x_ < parentTopLeftPosition.x_)
+            {
+                offsetPosition.x_ += parentTopLeftPosition.x_ - padTopLeftPosition.x_;
+                padTopLeftPosition.x_ = parentTopLeftPosition.x_;
+            }
+
+            if (padTopLeftPosition.x_ < parent->padTopLeftPosition_.x_)
+            {
+                offsetPosition.x_ += parent->padTopLeftPosition_.x_ - padTopLeftPosition.x_;
+                padTopLeftPosition.x_ = parent->padTopLeftPosition_.x_;
+            }
+
+            if (padTopLeftPosition.y_ < parentTopLeftPosition.y_)
+            {
+                offsetPosition.y_ += parentTopLeftPosition.y_ - padTopLeftPosition.y_;
+                padTopLeftPosition.y_ = parentTopLeftPosition.y_;
+            }
+
+            if (padTopLeftPosition.y_ < parent->padTopLeftPosition_.y_)
+            {
+                offsetPosition.y_ += parent->padTopLeftPosition_.y_ - padTopLeftPosition.y_;
+                padTopLeftPosition.y_ = parent->padTopLeftPosition_.y_;
+            }
         }
 
-        if (padTopLeftPosition.x_ < parent->padTopLeftPosition_.x_)
+        // Limit pad bottom right position relative to parent.
         {
-            offsetPosition.x_ += parent->padTopLeftPosition_.x_ - padTopLeftPosition.x_;
-            padTopLeftPosition.x_ = parent->padTopLeftPosition_.x_;
-        }
+            CUI::Position parentBottomRightPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getSize().width_, parent->getSize().height_} - CUI::Position{parent->getPadding().isLeft() + parent->getPadding().isRight(), parent->getPadding().isTop() + parent->getPadding().isBottom()};
 
-        if (padTopLeftPosition.y_ < parentTopLeftPosition.y_)
-        {
-            offsetPosition.y_ += parentTopLeftPosition.y_ - padTopLeftPosition.y_;
-            padTopLeftPosition.y_ = parentTopLeftPosition.y_;
-        }
+            if (padBottomRightPosition.x_ > parentBottomRightPosition.x_)
+            {
+                padBottomRightPosition.x_ = parentBottomRightPosition.x_;
+            }
 
-        if (padTopLeftPosition.y_ < parent->padTopLeftPosition_.y_)
-        {
-            offsetPosition.y_ += parent->padTopLeftPosition_.y_ - padTopLeftPosition.y_;
-            padTopLeftPosition.y_ = parent->padTopLeftPosition_.y_;
-        }
+            if (padBottomRightPosition.x_ > parent->padBottomRightPosition_.x_)
+            {
+                padBottomRightPosition.x_ = parent->padBottomRightPosition_.x_;
+            }
 
-        CUI::Position parentBottomRightPosition = parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getSize().width_, parent->getSize().height_} - CUI::Position{parent->getPadding().isLeft() + parent->getPadding().isRight(), parent->getPadding().isTop() + parent->getPadding().isBottom()};
+            if (padBottomRightPosition.y_ > parentBottomRightPosition.y_)
+            {
+                padBottomRightPosition.y_ = parentBottomRightPosition.y_;
+            }
 
-        if (padBottomRightPosition.x_ > parentBottomRightPosition.x_)
-        {
-            padBottomRightPosition.x_ = parentBottomRightPosition.x_;
-        }
-
-        if (padBottomRightPosition.x_ > parent->padBottomRightPosition_.x_)
-        {
-            padBottomRightPosition.x_ = parent->padBottomRightPosition_.x_;
-        }
-
-        if (padBottomRightPosition.y_ > parentBottomRightPosition.y_)
-        {
-            padBottomRightPosition.y_ = parentBottomRightPosition.y_;
-        }
-
-        if (padBottomRightPosition.y_ > parent->padBottomRightPosition_.y_)
-        {
-            padBottomRightPosition.y_ = parent->padBottomRightPosition_.y_;
+            if (padBottomRightPosition.y_ > parent->padBottomRightPosition_.y_)
+            {
+                padBottomRightPosition.y_ = parent->padBottomRightPosition_.y_;
+            }
         }
     }
 
-    padTopLeftPosition_ = padTopLeftPosition;
-    padBottomRightPosition_ = padBottomRightPosition;
-
-    // Pad position according to screen size
-    CUI::Size screenSize = {0, 0};
-    getmaxyx(stdscr, screenSize.height_, screenSize.width_);
-
-    screenSize.width_ -= getPadding().isLeft() + getPadding().isRight();
-    screenSize.height_ -= getPadding().isTop() + getPadding().isRight();
-
-    if (padBottomRightPosition.x_ > screenSize.width_)
+    /* Pad position limit relative to screen */
     {
-        padBottomRightPosition.x_ -= padBottomRightPosition.x_ - screenSize.width_;
+        CUI::Size screenSize = {0, 0};
+        getmaxyx(stdscr, screenSize.height_, screenSize.width_);
+
+        screenSize.width_ -= getPadding().isLeft() + getPadding().isRight();
+        screenSize.height_ -= getPadding().isTop() + getPadding().isRight();
+
+        if (padBottomRightPosition.x_ > screenSize.width_)
+        {
+            padBottomRightPosition.x_ -= padBottomRightPosition.x_ - screenSize.width_;
+        }
+
+        if (padBottomRightPosition.y_ > screenSize.height_)
+        {
+            padBottomRightPosition.y_ -= padBottomRightPosition.y_ - screenSize.height_;
+        }
     }
 
-    if (padBottomRightPosition.y_ > screenSize.height_)
-    {
-        padBottomRightPosition.y_ -= padBottomRightPosition.y_ - screenSize.height_;
-    }
+    padTopLeftPosition_ = padTopLeftPosition;         // Save top left position.
+    padBottomRightPosition_ = padBottomRightPosition; // Save bottom right position.
 
     pnoutrefresh(pad_, offsetPosition.y_, offsetPosition.x_, padTopLeftPosition.y_, padTopLeftPosition.x_, padBottomRightPosition.y_, padBottomRightPosition.x_);
 }
 
 void CUI::Window::drawWidgets()
 {
-    for (const auto &widget : widgets_)
+    for (auto &widget : widgets_)
     {
         widget->draw();
     }
@@ -360,6 +388,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
     switch (to)
     {
     case KEY_PPAGE:
+        /* Up */
         if (offset_.y_ >= step)
         {
             offset_.y_ -= step;
@@ -370,6 +399,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
         }
         break;
     case KEY_NPAGE:
+        /* Down */
         if (padSize_.height_ + getPadding().isTop() + getPadding().isBottom() >= offset_.y_ + getSize().height_ + step)
         {
             offset_.y_ += step;
@@ -380,6 +410,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
         }
         break;
     case KEY_RIGHT:
+        /* Right */
         if (padSize_.width_ + getPadding().isLeft() + getPadding().isRight() >= offset_.x_ + getSize().width_ + step)
         {
             offset_.x_ += step;
@@ -390,6 +421,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
         }
         break;
     case KEY_LEFT:
+        /* Left */
         if (offset_.x_ >= step)
         {
             offset_.x_ -= step;
@@ -403,7 +435,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
         break;
     }
 
-    return oldOffset != offset_;
+    return oldOffset != offset_; // Was offset changed?
 }
 
 CUI::Position CUI::Window::getAbsolutePositionWithScroll() const
@@ -416,7 +448,7 @@ CUI::Position CUI::Window::getAbsolutePositionWithScroll() const
 
         assert(parent);
 
-        result += parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().isLeft(), parent->getPadding().isTop()} - parent->getOffset();
+        result += parent->getAbsolutePositionWithScroll() + CUI::Position{parent->getPadding().isLeft(), parent->getPadding().isTop()} - parent->offset_;
     }
 
     return result;

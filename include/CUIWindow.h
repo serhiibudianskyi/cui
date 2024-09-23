@@ -19,12 +19,10 @@ namespace CUI
         virtual void draw() override;
         virtual void resize() override;
 
+        void add(Widget *);
+
         WINDOW *getPad() const;
         WINDOW *getBorder() const;
-
-        Position getOffset() const;
-
-        void add(Widget *);
 
     protected:
         void move();
