@@ -92,3 +92,13 @@ CUI::Direction CUI::Widget::getDirection() const
 {
     return direction_;
 }
+
+void CUI::Widget::setActive(bool active)
+{
+    active_ = active;
+}
+
+bool CUI::Widget::isActive() const
+{
+    return active_;
+}

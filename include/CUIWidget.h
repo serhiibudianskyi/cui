@@ -48,6 +48,9 @@ namespace CUI
         void setDirection(const Direction &direction);
         Direction getDirection() const;
 
+        void setActive(bool active);
+        bool isActive() const;
+
     private:
         const std::uint32_t id_{0};
 
@@ -60,6 +63,8 @@ namespace CUI
         Padding padding_{0, 0, 0, 0};
         Position position_{0, 0};
         Direction direction_{VERTICAL};
+
+        bool active_{false};
 
         static uint32_t nextId_;
     };
