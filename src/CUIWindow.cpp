@@ -4,13 +4,11 @@ CUI::Window::Window(CUI::Window *parent, const std::string &title, CUI::Directio
     : CUI::Widget(parent), title_(title)
 {
     /* Pad initialization */
-    pad_ = newpad(1, 1);                    // Use non-zero space to avoid displaying issue.
-    wbkgd(pad_, COLOR_PAIR(WIN_PAD_COLOR)); // Default pad color is WIN_PAD_COLOR.
-    keypad(pad_, true);                     // Enable special keys to use F1, Esc and etc.
+    pad_ = newpad(1, 1); // Use non-zero space to avoid displaying issue.
+    keypad(pad_, true); // Enable special keys to use F1, Esc and etc.
 
     /* Border initialization */
     border_ = parent ? derwin(parent->getPad(), 0, 0, 0, 0) : newwin(0, 0, 0, 0);
-    wbkgd(border_, COLOR_PAIR(WIN_BORDER_COLOR)); // Default border color.
 
     /* Border panel initialization */
     panel_ = new_panel(border_); // Use to hold the border window, ensuring it doesn't overlap with other windows.
@@ -39,11 +37,16 @@ int CUI::Window::run()
     int character = 0;
     bool exit = false;
 
-    refresh(); // Refresh window despite of existed child widgets.
+    activate(); // Refresh window despite of existed child widgets and activa status.
 
     /* Main loop: process user input and update the window */
     for (std::size_t i = 0; i < widgets_.size() && !exit;)
     {
+        if (dynamic_cast<CUI::Window *>(widgets_[i]))
+        {
+            deactivate();
+        }
+
         refresh(); // Repaint window with updated data.
 
         /* Running child widget */
@@ -84,6 +87,8 @@ int CUI::Window::run()
         }
     }
 
+    setActive(false);
+
     return character;
 }
 
@@ -101,9 +106,9 @@ void CUI::Window::refresh()
 void CUI::Window::update()
 {
     /* Updating window */
+    replace(); // Replace widgets.
     resize();  // Resize before movement.
     move();    // Movement after resize.
-    replace(); // Replace widgets according to new size and position.
 
     /* Updating all child widgets correspondingly */
     for (auto &widget : widgets_)
@@ -280,6 +285,14 @@ void CUI::Window::drawTitle()
     wattroff(border_, A_BOLD); // Turn off bold font.
 }
 
+void CUI::Window::drawWidgets()
+{
+    for (auto &widget : widgets_)
+    {
+        widget->draw();
+    }
+}
+
 void CUI::Window::drawPad()
 {
     CUI::Position offsetPosition = offset_;
@@ -370,15 +383,28 @@ void CUI::Window::drawPad()
     padTopLeftPosition_ = padTopLeftPosition;         // Save top left position.
     padBottomRightPosition_ = padBottomRightPosition; // Save bottom right position.
 
+    if (isActive()) // Check if the widget is active
+    {
+        wattron(pad_, COLOR_PAIR(WIN_PAD_COLOR)); // Set the pad color to green
+    }
+    else
+    {
+        wattron(pad_, COLOR_PAIR(WIN_BORDER_COLOR)); // Set the pad color to default
+    }
+
     pnoutrefresh(pad_, offsetPosition.y_, offsetPosition.x_, padTopLeftPosition.y_, padTopLeftPosition.x_, padBottomRightPosition.y_, padBottomRightPosition.x_);
 }
 
-void CUI::Window::drawWidgets()
+void CUI::Window::activate()
 {
-    for (auto &widget : widgets_)
-    {
-        widget->draw();
-    }
+    setActive(true);
+    refresh();
+}
+
+void CUI::Window::deactivate()
+{
+    setActive(false);
+    refresh();
 }
 
 bool CUI::Window::scrolling(int to, unsigned short step)

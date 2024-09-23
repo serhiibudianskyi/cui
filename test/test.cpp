@@ -5,6 +5,7 @@ int main(int argc, char *argv[])
     CUI::Application app;
 
     CUI::Window *main = new CUI::Window(nullptr, "Main", CUI::VERTICAL);
+    main->add(new CUI::Text(main, "This is line line line line line line"));
     CUI::Window *subh0 = new CUI::Window(main, "Sub 0", CUI::HORIZONTAL);
     subh0->add(new CUI::Text(subh0, "This is line " + std::to_string(0)));
     CUI::Window *subh0v0 = new CUI::Window(subh0, "Sub 0 0", CUI::VERTICAL);

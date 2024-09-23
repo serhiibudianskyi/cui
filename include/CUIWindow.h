@@ -32,6 +32,8 @@ namespace CUI
         void drawTitle();
         void drawWidgets();
         void drawPad();
+        void activate();
+        void deactivate();
         
         bool scrolling(int to, unsigned short step);
 
