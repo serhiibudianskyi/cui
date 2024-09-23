@@ -382,16 +382,11 @@ void CUI::Window::drawPad()
 
     padTopLeftPosition_ = padTopLeftPosition;         // Save top left position.
     padBottomRightPosition_ = padBottomRightPosition; // Save bottom right position.
+    
+    /* Active pad color */
+    wattron(pad_, COLOR_PAIR(isActive() ? WIN_PAD_COLOR : WIN_BORDER_COLOR));
 
-    if (isActive()) // Check if the widget is active
-    {
-        wattron(pad_, COLOR_PAIR(WIN_PAD_COLOR)); // Set the pad color to green
-    }
-    else
-    {
-        wattron(pad_, COLOR_PAIR(WIN_BORDER_COLOR)); // Set the pad color to default
-    }
-
+    /* Pad visible region displaying */
     pnoutrefresh(pad_, offsetPosition.y_, offsetPosition.x_, padTopLeftPosition.y_, padTopLeftPosition.x_, padBottomRightPosition.y_, padBottomRightPosition.x_);
 }
 
