@@ -27,7 +27,7 @@ jobs:
         os: [ubuntu-latest]
         build_type: [Release]
         build_test: [On]
-        build_shared: [On]
+        build_shared: [Off]
         # c_compiler: [gcc, clang, cl]
         c_compiler: [gcc, clang]
         include:
