@@ -49,9 +49,9 @@ else()
 endif()
 
 # Target dependencies
-target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDES})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBLARIES})
-target_link_directories(${PROJECT_NAME} PRIVATE ${LIB_DIRS})
+include_directories(${INCLUDES})
+link_libraries(${LIBLARIES})
+link_directories(${LIB_DIRS})
 
 # Installation
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${INSTALL_INCLUDE_DIR})
@@ -60,5 +60,16 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake DESTINATIO
 # Testing
 option(BUILD_TEST "Build test" Off)
 if(BUILD_TEST)
-    add_subdirectory(test)
+    enable_testing()
+
+    link_libraries(${PROJECT_NAME})
+
+    add_executable(Window test/window.cpp)
+    add_test(NAME WindowTest COMMAND Window)
+
+    # add_executable(Type test/type.cpp)
+    # add_test(NAME TypeTest COMMAND Type)
+
+    # add_executable(Object test/object.cpp)
+    # add_test(NAME ObjectTest COMMAND Object)
 endif()

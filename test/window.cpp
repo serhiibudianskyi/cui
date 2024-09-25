@@ -31,5 +31,7 @@ int main(int argc, char *argv[])
 
     app.add(main);
 
-    return app.run();
+    ungetch(27);
+
+    return !app.run();
 }
