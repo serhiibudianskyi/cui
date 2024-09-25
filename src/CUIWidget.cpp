@@ -94,26 +94,21 @@ CUI::Direction CUI::Widget::getDirection() const
     return direction_;
 }
 
-void CUI::Widget::setActive(bool active)
-{
-    active_ = active;
-}
-
-bool CUI::Widget::isActive() const
-{
-    return active_;
-}
-
 void CUI::Widget::activate()
 {
-    setActive(true);
+    active_ = true;
     
     getParent() ? getParent()->refresh() : refresh();
 }
 
 void CUI::Widget::deactivate()
 {
-    setActive(false);
+    active_ = false;
 
     getParent() ? getParent()->refresh() : refresh();
+}
+
+bool CUI::Widget::isActive() const
+{
+    return active_;
 }
