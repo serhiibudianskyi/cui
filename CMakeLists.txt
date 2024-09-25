@@ -22,7 +22,7 @@ set(INCLUDES
     ${CURSES_INCLUDE_DIR}
     ${trace_INCLUDE_DIR}
 )
-set(LIBLARIES curses panel menu form trace)
+set(LIBLARIES ${CURSES_LIBRARIES} panel menu form trace)
 set(LIB_DIRS ${trace_LIB_DIR})
 
 # Config settings
