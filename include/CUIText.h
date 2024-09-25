@@ -9,7 +9,7 @@ namespace CUI
     public:
         Text(Window *parent, const std::string &text);
 
-        virtual int run() override; /* temp */
+        virtual int run() override;
         virtual void refresh() override;
         virtual void update() override;
         virtual void draw() override;
