@@ -53,7 +53,7 @@ endif()
 
 # Target dependencies
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDES})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME} ${LIBLARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBLARIES})
 target_link_directories(${PROJECT_NAME} PRIVATE ${LIB_DIRS})
 
 # Installation
