@@ -62,8 +62,8 @@ option(BUILD_TEST "Build test" Off)
 if(BUILD_TEST)
     enable_testing()
 
+    link_libraries(${LIBLARIES} cui tinfo)
+
     add_executable(Window test/window.cpp)
     add_test(NAME WindowTest COMMAND Window)
-
-    target_link_libraries(Window PRIVATE ${LIBLARIES})
 endif()
