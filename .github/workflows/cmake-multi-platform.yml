@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
-name: CMake on multiple platforms
+name: CUI on multiple platforms
 
 on:
   push:
@@ -26,6 +26,7 @@ jobs:
         # os: [ubuntu-latest, windows-latest]
         os: [ubuntu-latest]
         build_type: [Release]
+        test: [On]
         # c_compiler: [gcc, clang, cl]
         c_compiler: [gcc, clang]
         include:
@@ -62,8 +63,7 @@ jobs:
         cd trace
         mkdir build && cd build
         cmake .. -DBUILD_SHARED=On
-        make
-        sudo make install  # Install the library system-wide (requires sudo)
+        sudo make install
       shell: bash
       
     - name: Configure CMake
@@ -74,6 +74,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DBUILD_TEST=${{ matrix.test }}
         -S ${{ github.workspace }}
 
     - name: Build
