@@ -12,11 +12,6 @@ CUI::Widget::~Widget()
     TRC::Trace(TRC::Type::INFO, "%s: id(%ld)", __PRETTY_FUNCTION__, id_);
 }
 
-int CUI::Widget::run()
-{
-    return 0;
-}
-
 std::uint32_t CUI::Widget::getId() const
 {
     return id_;
