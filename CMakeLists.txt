@@ -22,7 +22,7 @@ set(INCLUDES
     ${CURSES_INCLUDE_DIR}
     ${trace_INCLUDE_DIR}
 )
-set(LIBLARIES ${CURSES_LIBRARIES} panel menu form trace)
+set(LIBLARIES ${CURSES_LIBRARIES} panel menu form trace tinfo)
 set(LIB_DIRS ${trace_LIB_DIR})
 
 # Config settings
@@ -62,7 +62,7 @@ option(BUILD_TEST "Build test" Off)
 if(BUILD_TEST)
     enable_testing()
 
-    link_libraries(${LIBLARIES} cui tinfo)
+    link_libraries(${LIBLARIES} cui)
 
     add_executable(Window test/window.cpp)
     add_test(NAME WindowTest COMMAND Window)
