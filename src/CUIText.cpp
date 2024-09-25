@@ -11,7 +11,6 @@ int CUI::Text::run()
     assert(parent); // Parent should be a window widget.
 
     activate();
-    refresh();
 
     int character = wgetch(parent->getPad());
 
