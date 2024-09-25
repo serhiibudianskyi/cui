@@ -108,3 +108,17 @@ bool CUI::Widget::isActive() const
 {
     return active_;
 }
+
+void CUI::Widget::activate()
+{
+    setActive(true);
+    
+    getParent() ? getParent()->refresh() : refresh();
+}
+
+void CUI::Widget::deactivate()
+{
+    setActive(false);
+
+    getParent() ? getParent()->refresh() : refresh();
+}

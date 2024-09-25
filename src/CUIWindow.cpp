@@ -387,23 +387,10 @@ void CUI::Window::drawPad()
     padTopLeftPosition_ = padTopLeftPosition;         // Save top left position.
     padBottomRightPosition_ = padBottomRightPosition; // Save bottom right position.
 
-    /* Active pad color */
+    /* Active pad color on */
     wattron(pad_, COLOR_PAIR(isActive() ? WIN_PAD_COLOR : WIN_BORDER_COLOR));
-
     /* Pad visible region displaying */
     pnoutrefresh(pad_, offsetPosition.y_, offsetPosition.x_, padTopLeftPosition.y_, padTopLeftPosition.x_, padBottomRightPosition.y_, padBottomRightPosition.x_);
-}
-
-void CUI::Window::activate()
-{
-    setActive(true);
-    refresh();
-}
-
-void CUI::Window::deactivate()
-{
-    setActive(false);
-    refresh();
 }
 
 bool CUI::Window::scrolling(int to, unsigned short step)

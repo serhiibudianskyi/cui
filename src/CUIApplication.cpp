@@ -12,6 +12,7 @@ CUI::Application::Application()
 
     init_pair(WIN_BORDER_COLOR, COLOR_WHITE, COLOR_BLACK);
     init_pair(WIN_PAD_COLOR, COLOR_BLACK, COLOR_GREEN);
+    init_pair(WIN_CURSOR_COLOR, COLOR_BLACK, COLOR_MAGENTA);
 }
 
 CUI::Application::~Application()

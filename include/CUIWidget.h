@@ -52,6 +52,8 @@ namespace CUI
 
         void setActive(bool active);
         bool isActive() const;
+        void activate();
+        void deactivate();
 
     private:
         const std::uint32_t id_{0};

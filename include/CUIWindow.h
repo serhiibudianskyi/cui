@@ -4,6 +4,7 @@
 
 #define WIN_BORDER_COLOR 1
 #define WIN_PAD_COLOR 2
+#define WIN_CURSOR_COLOR 3
 
 namespace CUI
 {
@@ -32,8 +33,6 @@ namespace CUI
         void drawTitle();
         void drawWidgets();
         void drawPad();
-        void activate();
-        void deactivate();
         
         bool scrolling(int to, unsigned short step);
 
