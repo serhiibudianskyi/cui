@@ -22,7 +22,10 @@ set(INCLUDES
     ${CURSES_INCLUDE_DIR}
     ${trace_INCLUDE_DIR}
 )
-set(LIBLARIES ${CURSES_LIBRARIES} panel menu form trace tinfo)
+set(LIBLARIES ${CURSES_LIBRARIES} panel menu form trace)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    list(APPEND LIBRARIES tinfo)
+endif()
 set(LIB_DIRS ${trace_LIB_DIR})
 
 # Config settings
@@ -49,9 +52,9 @@ else()
 endif()
 
 # Target dependencies
-include_directories(${INCLUDES})
-link_libraries(${LIBLARIES})
-link_directories(${LIB_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME} ${LIBLARIES})
+target_link_directories(${PROJECT_NAME} PRIVATE ${LIB_DIRS})
 
 # Installation
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${INSTALL_INCLUDE_DIR})
@@ -62,7 +65,9 @@ option(BUILD_TEST "Build test" Off)
 if(BUILD_TEST)
     enable_testing()
 
-    link_libraries(cui tinfo panel)
+    include_directories(${INCLUDES})
+    link_libraries(${PROJECT_NAME} ${LIBLARIES})
+    link_directories(${LIB_DIRS})
 
     add_executable(Window test/window.cpp)
     add_test(NAME WindowTest COMMAND Window)
