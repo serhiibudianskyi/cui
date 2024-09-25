@@ -1,7 +1,3 @@
-#include <thread>
-#include <chrono>
-#include <future>
-
 #include "CUI.h"
 
 int main(int argc, char *argv[])
@@ -37,17 +33,5 @@ int main(int argc, char *argv[])
 
     ungetch(27);
 
-    std::promise<int> resultPromise;
-    std::future<int> resultFuture = resultPromise.get_future();
-    std::thread appThread([&app, &resultPromise]()
-                          {
-                              int result = app.run();
-                              resultPromise.set_value(result);
-                          });
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    appThread.join();
-
-    return !resultFuture.get();
+    return app.run();
 }
