@@ -5,7 +5,7 @@ CUI::Window::Window(CUI::Window *parent, const std::string &title, CUI::Directio
 {
     /* Pad initialization */
     pad_ = newpad(1, 1); // Use non-zero space to avoid displaying issue.
-    keypad(pad_, true); // Enable special keys to use F1, Esc and etc.
+    keypad(pad_, true);  // Enable special keys to use F1, Esc and etc.
 
     /* Border initialization */
     border_ = parent ? derwin(parent->getPad(), 0, 0, 0, 0) : newwin(0, 0, 0, 0);

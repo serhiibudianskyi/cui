@@ -6,6 +6,8 @@
 #include <ncurses.h>
 #include <algorithm>
 
+#include "TRC.h"
+
 #include "CUISize.h"
 #include "CUIPadding.h"
 #include "CUIPosition.h"
@@ -17,7 +19,7 @@ namespace CUI
     {
     public:
         Widget(Widget *parent);
-        virtual ~Widget() = default;
+        virtual ~Widget();
 
         virtual int run();
         virtual void refresh() = 0;

@@ -4,6 +4,12 @@ uint32_t CUI::Widget::nextId_ = 0;
 
 CUI::Widget::Widget(CUI::Widget *parent) : id_(++nextId_), parent_(parent)
 {
+    TRC::Trace(TRC::Type::INFO, "%s: id(%ld)", __PRETTY_FUNCTION__, id_);
+}
+
+CUI::Widget::~Widget()
+{
+    TRC::Trace(TRC::Type::INFO, "%s: id(%ld)", __PRETTY_FUNCTION__, id_);
 }
 
 int CUI::Widget::run()
