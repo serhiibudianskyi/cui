@@ -62,8 +62,7 @@ option(BUILD_TEST "Build test" Off)
 if(BUILD_TEST)
     enable_testing()
 
-    set(LIBRARIES ${LIBRARIES} ${PROJECT_NAME})
-    link_libraries(${LIBRARIES})
+    link_libraries(${PROJECT_NAME})
 
     add_executable(Window test/window.cpp)
     add_test(NAME WindowTest COMMAND Window)
