@@ -21,7 +21,7 @@ namespace CUI
         Widget(Widget *parent);
         virtual ~Widget();
 
-        virtual int run();
+        virtual int run() = 0;
         virtual void refresh() = 0;
         virtual void update() = 0;
         virtual void draw() = 0;
@@ -50,10 +50,9 @@ namespace CUI
         void setDirection(const Direction &direction);
         Direction getDirection() const;
 
-        void setActive(bool active);
-        bool isActive() const;
         void activate();
         void deactivate();
+        bool isActive() const;
 
     private:
         const std::uint32_t id_{0};
