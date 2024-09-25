@@ -42,16 +42,15 @@ int CUI::Window::run()
     /* Main loop: process user input and update the window */
     for (std::size_t i = 0; i < widgets_.size() && !exit;)
     {
-        if (dynamic_cast<CUI::Window *>(widgets_[i]))
-        {
-            deactivate();
-        }
+        /* (Dea-|A-)ctivate current window widget due to next one */
+        dynamic_cast<CUI::Window *>(widgets_[i]) ? deactivate() : activate();
 
         refresh(); // Repaint window with updated data.
 
         /* Running child widget */
         character = widgets_[i]->run();
 
+        /* Run result processing */
         switch (character)
         {
         case KEY_PPAGE:
@@ -59,9 +58,14 @@ int CUI::Window::run()
         case KEY_LEFT:
         case KEY_RIGHT:
             /* Scrolling */
-            if (scrolling(character, 1) || !getParent()) // Scroll the window if it's possible or check the window is not a main.
+            if (scrolling(character, getSize().width_ / 10) || !getParent()) // Scroll the window if it's possible or check the window is not a main.
             {
-                break; // Stay on current widget.
+                if (i) // Try to go to previous widget.
+                {
+                    i--;
+                }
+
+                break;
             }
             else
             {
@@ -87,7 +91,7 @@ int CUI::Window::run()
         }
     }
 
-    setActive(false);
+    deactivate();
 
     return character;
 }
@@ -382,7 +386,7 @@ void CUI::Window::drawPad()
 
     padTopLeftPosition_ = padTopLeftPosition;         // Save top left position.
     padBottomRightPosition_ = padBottomRightPosition; // Save bottom right position.
-    
+
     /* Active pad color */
     wattron(pad_, COLOR_PAIR(isActive() ? WIN_PAD_COLOR : WIN_BORDER_COLOR));
 
