@@ -57,6 +57,12 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libncurses-dev
+      shell: bash
+
     - name: Clone and install trace library
       run: |
         git clone https://github.com/serhiibudianskyi/trace.git
