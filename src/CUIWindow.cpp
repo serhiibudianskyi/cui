@@ -45,6 +45,9 @@ int CUI::Window::run()
         /* (Dea-|A-)ctivate current window widget due to next one */
         dynamic_cast<CUI::Window *>(widgets_[i]) ? deactivate() : activate();
 
+        /* Next widget should be visible as possible */
+        // ??
+        
         refresh(); // Repaint window with updated data.
 
         /* Running child widget */
@@ -58,21 +61,13 @@ int CUI::Window::run()
         case CUI::KEY_LPAGE:
         case CUI::KEY_RPAGE:
             /* Scrolling */
-            if (scrolling(character, getSize().width_ / 10) || !getParent()) // Scroll the window if it's possible or check the window is not a main.
-            {
-                if (i) // Try to go to previous widget.
-                {
-                    i--;
-                }
-
-                break;
-            }
-            else
+            if (!scrolling(character, getSize().width_ / 10) && getParent()) // Scroll the window if it's possible or check the window is not a main.
             {
                 exit = true; // Exit current widget to scroll parent.
             }
+            break;
         case KEY_F(1):
-        case 27:
+        case CUI::KEY_ESC:
             /* Exit */
             exit = true;
             break;
@@ -84,6 +79,19 @@ int CUI::Window::run()
             }
             offset_ = {0, 0}; // Reset window offset.
             break;
+        case KEY_UP:
+        case KEY_LEFT:
+            if (i)
+            {
+                i--; // Go to previous widget.
+            }
+            else
+            {
+                exit = true; // Exit current widget to try previous one.
+            }
+            break;
+        case KEY_DOWN:
+        case KEY_RIGHT:
         default:
             /* Next */
             i++; // Go to next widget.

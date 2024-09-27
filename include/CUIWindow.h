@@ -8,6 +8,7 @@ namespace CUI
     constexpr const std::size_t WIN_PAD_COLOR = 2;
     constexpr const std::size_t WIN_CURSOR_COLOR = 3;
 
+    constexpr const std::size_t KEY_ESC = 27;
     constexpr const std::size_t KEY_LPAGE = 262;
     constexpr const std::size_t KEY_RPAGE = 360;
 
