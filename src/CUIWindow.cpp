@@ -55,8 +55,8 @@ int CUI::Window::run()
         {
         case KEY_PPAGE:
         case KEY_NPAGE:
-        case KEY_LEFT:
-        case KEY_RIGHT:
+        case CUI::KEY_LPAGE:
+        case CUI::KEY_RPAGE:
             /* Scrolling */
             if (scrolling(character, getSize().width_ / 10) || !getParent()) // Scroll the window if it's possible or check the window is not a main.
             {
@@ -388,7 +388,7 @@ void CUI::Window::drawPad()
     padBottomRightPosition_ = padBottomRightPosition; // Save bottom right position.
 
     /* Active pad color on */
-    wattron(pad_, COLOR_PAIR(isActive() ? WIN_PAD_COLOR : WIN_BORDER_COLOR));
+    wattron(pad_, COLOR_PAIR(isActive() ? CUI::WIN_PAD_COLOR : CUI::WIN_BORDER_COLOR));
     /* Pad visible region displaying */
     pnoutrefresh(pad_, offsetPosition.y_, offsetPosition.x_, padTopLeftPosition.y_, padTopLeftPosition.x_, padBottomRightPosition.y_, padBottomRightPosition.x_);
 }
@@ -421,7 +421,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
             offset_.y_++;
         }
         break;
-    case KEY_RIGHT:
+    case CUI::KEY_RPAGE:
         /* Right */
         if (padSize_.width_ + getPadding().isLeft() + getPadding().isRight() >= offset_.x_ + getSize().width_ + step)
         {
@@ -432,7 +432,7 @@ bool CUI::Window::scrolling(int to, unsigned short step)
             offset_.x_++;
         }
         break;
-    case KEY_LEFT:
+    case CUI::KEY_LPAGE:
         /* Left */
         if (offset_.x_ >= step)
         {

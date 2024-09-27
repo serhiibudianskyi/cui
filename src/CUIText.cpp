@@ -36,7 +36,7 @@ void CUI::Text::draw()
     assert(parent); // Parent should be a window widget.
 
     /* Active text color on */
-    wattron(parent->getPad(), COLOR_PAIR(isActive() ? WIN_CURSOR_COLOR : parent->isActive() ? WIN_PAD_COLOR : WIN_BORDER_COLOR));
+    wattron(parent->getPad(), COLOR_PAIR(isActive() ? CUI::WIN_CURSOR_COLOR : parent->isActive() ? CUI::WIN_PAD_COLOR : CUI::WIN_BORDER_COLOR));
     /* Print text */
     mvwprintw(parent->getPad(), getPosition().y_, getPosition().x_, "%s", text_.c_str());
 }

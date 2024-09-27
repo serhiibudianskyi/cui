@@ -2,12 +2,15 @@
 
 #include "CUIWidget.h"
 
-#define WIN_BORDER_COLOR 1
-#define WIN_PAD_COLOR 2
-#define WIN_CURSOR_COLOR 3
-
 namespace CUI
 {
+    constexpr const std::size_t WIN_BORDER_COLOR = 1;
+    constexpr const std::size_t WIN_PAD_COLOR = 2;
+    constexpr const std::size_t WIN_CURSOR_COLOR = 3;
+
+    constexpr const std::size_t KEY_LPAGE = 262;
+    constexpr const std::size_t KEY_RPAGE = 360;
+
     class Window : public Widget
     {
     public:
